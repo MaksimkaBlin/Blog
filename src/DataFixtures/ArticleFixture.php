@@ -5,9 +5,11 @@ namespace App\DataFixtures;
 use App\Entity\Article;
 
 use App\Entity\Comment;
+use App\Entity\Tag;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
-class ArticleFixture extends BaseFixture
+class ArticleFixture extends BaseFixture implements DependentFixtureInterface
 {
     private static $articleTitles = [
         'Why Asteroids Taste Like Bacon',
@@ -71,23 +73,18 @@ EOF
                 ->setHeartCount($this->faker->numberBetween(5, 100))
                 ->setImageFilename($this->faker->randomElement(self::$articleImages));
 
+            $tags =$this->getRandomReferences(Tag::class, $this->faker->numberBetween(0, 5));
+            foreach ($tags as $tag){
+                $article->addTag($tag);
 
-            $comment1 = new Comment();
-            $comment1->setAuthorName('MaksimkaBlin');
-            $comment1->setContent('bla bla bla');
-            $comment1->setArticle($article);
-            $manager->persist($comment1);
-
-            $comment2 = new Comment();
-            $comment2->setAuthorName('Basya');
-            $comment2->setContent('aaaaaaaaaaaaaaaaaaaaaaaa');
-            $comment2->setArticle($article);
-            $manager->persist($comment2);
-
-
-
-
+            }
         });
         $manager->flush();
+    }
+    public function getDependencies()
+    {
+     return [
+        TagFixture::class,
+     ];
     }
 }
