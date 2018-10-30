@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -42,9 +44,25 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups("main")
+     *
      */
     private $twitterUsername;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ApiToken", mappedBy="user")
+     */
+    private $orphanRemoval;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="author")
+     */
+    private $articles;
+
+    public function __construct()
+    {
+        $this->orphanRemoval = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+    }
 
     public function getAvatarUrl(string $size = null): string
     {
@@ -88,7 +106,7 @@ class User implements UserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
+
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -155,5 +173,71 @@ class User implements UserInterface
         $this->twitterUsername = $twitterUsername;
 
         return $this;
+    }
+
+    /**
+     * @return Collection|ApiToken[]
+     */
+    public function getOrphanRemoval(): Collection
+    {
+        return $this->orphanRemoval;
+    }
+
+    public function addOrphanRemoval(ApiToken $orphanRemoval): self
+    {
+        if (!$this->orphanRemoval->contains($orphanRemoval)) {
+            $this->orphanRemoval[] = $orphanRemoval;
+            $orphanRemoval->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrphanRemoval(ApiToken $orphanRemoval): self
+    {
+        if ($this->orphanRemoval->contains($orphanRemoval)) {
+            $this->orphanRemoval->removeElement($orphanRemoval);
+            // set the owning side to null (unless already changed)
+            if ($orphanRemoval->getUser() === $this) {
+                $orphanRemoval->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getAuthor() === $this) {
+                $article->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+    public function __toString()
+    {
+        return $this->getFirstName();
     }
 }

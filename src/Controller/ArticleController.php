@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Controller;
-
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
 use App\Service\MarkdownHelper;
@@ -13,11 +11,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
 use Symfony\Component\Routing\Annotation\Route;
-
 class ArticleController extends AbstractController
 {
-
-
     /**
      * @Route("/", name="app_homepage")
      */
@@ -28,7 +23,6 @@ class ArticleController extends AbstractController
             'articles'=>$articles,
         ]);
     }
-
     /**
      * @Route("/news/{slug}", name="article_show")
      */
@@ -38,7 +32,6 @@ class ArticleController extends AbstractController
             'article' => $article,
         ]);
     }
-
     /**
      * @Route("/news/{slug}/heart", name="article_toggle_heart", methods={"POST"})
      */
@@ -47,9 +40,7 @@ class ArticleController extends AbstractController
         $article->incrementHeartCount();
         $em->flush();
         // TODO - actually heart/unheart the article!
-
         $logger->info('Article is being hearted!');
-
         return new JsonResponse(['hearts' => $article->getHeartCount()]);
     }
 }
